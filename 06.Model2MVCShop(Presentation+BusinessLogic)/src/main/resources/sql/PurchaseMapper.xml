@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PurchaseMapper">
+	<resultMap id="purchaseSelectMap" type="purchase">
+		<result property="tranNo" 		 column="tran_no" jdbcType="NUMERIC"/>
+		<result property="purchaseProd.prodNo"  column="prod_no" jdbcType="NUMERIC"/>
+		<result property="buyer.userId" 		 column="buyer_id" jdbcType="VARCHAR"/>
+		<result property="paymentOption" column="payment_option" jdbcType="CHAR"/>
+		<result property="receiverName"  column="receiver_name" jdbcType="VARCHAR"/>
+		<result property="receiverPhone" column="receiver_phone" jdbcType="VARCHAR"/>
+		<result property="dlvyAddr" 	 column="dlvy_addr" jdbcType="VARCHAR"/>
+		<result property="dlvyRequest" 	 column="dlvy_request" jdbcType="VARCHAR"/>
+		<result property="tranCode"		 column="tran_status_code" jdbcType="CHAR"/>
+		<result property="orderDate" 	 column="order_date" jdbcType="DATE"/>
+		<result property="dlvyDate" 	 column="dlvy_date" jdbcType="DATE"/>
+		
+		<result property="purchaseProd.prodName" column="prodname" jdbcType="CHAR"/>
+		<result property="purchaseProd.price"  column="price" jdbcType="NUMERIC"/>
+		<result property="purchaseProd.regDate"  column="reg_date" jdbcType="DATE"/>
+		
+		<!-- 
+		<association property="purchaseProd"  javaType="product">
+			<id property="prodNo" column="prod_no" jdbcType="NUMERIC"/>
+			<result property="prodName" column="prod_name" jdbcType="VARCHAR"/>
+			<result property="prodDetail" column="prod_detail" jdbcType="VARCHAR"/>
+			<result property="manuDate" column="manufacture_day" jdbcType="VARCHAR"/>
+			<result property="price" column="price" jdbcType="NUMERIC"/>
+			<result property="fileName" column="image_file" jdbcType="VARCHAR"/>
+			<result property="regDate" column="REG_DATE" jdbcType="DATE"/>
+			<result property="proTranCode" column="TRAN_STATUS_CODE" jdbcType="CHAR"/>
+		</association>
+		
+		<association property="buyer"  javaType="user">
+			<id property="userId" column="buyer_id" jdbcType="VARCHAR"/>
+			<result property="userName" column="user_name" jdbcType="VARCHAR"/>
+			<result property="password" column="password" jdbcType="VARCHAR"/>
+			<result property="role" column="role" jdbcType="VARCHAR"/>
+			<result property="ssn" column="ssn" jdbcType="VARCHAR"/>
+			<result property="phone" column="cell_phone" jdbcType="VARCHAR"/>
+			<result property="addr" column="addr" jdbcType="VARCHAR"/>
+			<result property="email" column="email" jdbcType="VARCHAR"/>
+ 			<result property="regDate" column="user_reg_date" jdbcType="DATE"/>
+		</association>
+		 -->
+		
+	</resultMap>
+
+		<!-- SQL : INSERT -->
+	<insert 	id="addPurchase" parameterType="purchase" >
+		INSERT
+		INTO transaction  ( tran_no, prod_no, buyer_id,
+		 payment_option, receiver_name, receiver_phone,
+		  dlvy_addr, dlvy_request, tran_status_code,
+		   order_date, dlvy_date )
+		VALUES	 (	seq_transaction_tran_no.nextval ,
+				#{purchaseProd.prodNo} ,
+				#{buyer.userId} ,
+				#{paymentOption:CHAR},
+				#{receiverName:VARCHAR} ,
+				#{receiverPhone:VARCHAR} ,
+				#{dlvyAddr:VARCHAR},
+				#{dlvyRequest:VARCHAR},
+				#{tranCode:CHAR},
+				SYSDATE,
+				#{dlvyDate:DATE})
+			<!-- (	seq_transaction_tran_no.nextval , #{purchaseProd.prodNo} , #{buyer.userId} ,
+			#{paymentOption:CHAR},  #{receiverName:VARCHAR} , 	#{receiverPhone:VARCHAR} , 
+			#{dlvyAddr:VARCHAR}, #{dlvyRequest:VARCHAR}, #{tranCode:CHAR},
+			SYSDATE, #{orderDate:DATE} ) -->
+	 </insert>
+	
+	 <!-- SQL : SELECT ONE -->
+	 <select 	id="getPurchaseByTranNo"	parameterType="int" resultMap="purchaseSelectMap">
+		SELECT
+		tran_no, prod_no, buyer_id, 
+		payment_option, receiver_name, receiver_phone,	
+		dlvy_addr, dlvy_request, tran_status_code,
+		order_date, TO_CHAR(dlvy_date,'YYYY-MM-DD') dlvy_date
+		FROM transaction
+		WHERE tran_no = #{value}
+	 </select>
+	 
+	 <select 	id="getPurchaseByProdNo"	parameterType="int"	resultMap="purchaseSelectMap">
+		SELECT
+		tran_no, prod_no, buyer_id, 
+		payment_option, receiver_name, receiver_phone,	
+		dlvy_addr, dlvy_request, tran_status_code,
+		order_date, TRUNC(dlvy_date,'d') dlvy_date
+		FROM transaction
+		WHERE prod_no = #{value}
+	 </select>
+
+	 <!-- SQL : UPDATE -->
+	 <update	id="updatePurchase"	parameterType="purchase" >
+	   	UPDATE transaction
+	   	<set>
+	   		payment_option	= #{paymentOption:VARCHAR},
+	   		receiver_name	= #{receiverName:VARCHAR}, 
+	   		receiver_phone	= #{receiverPhone:VARCHAR}, 
+	   		dlvy_addr		= #{dlvyAddr:VARCHAR}, 
+	   		dlvy_request	= #{dlvyRequest:VARCHAR},  
+	   		dlvy_date		= #{dlvyDate:DATE}
+		</set>
+	   	WHERE tran_no = #{tranNo}
+	 </update>
+	 
+	  <update	id="updateTranCode"	parameterType="purchase" >
+	   	UPDATE transaction
+	   	SET tran_status_code = #{tranCode:CHAR}
+	   	WHERE tran_no = #{tranNo}
+	 </update>
+		 
+	<!-- http://knight76.tistory.com/entry/Mybatis-%EC%A2%8B%EC%9D%80-%ED%8C%81-%EC%97%AC%EB%9F%AC%EA%B0%9C%EC%9D%98-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0%EB%A5%BC-%EC%9E%90%EB%8F%99%EC%9C%BC%EB%A1%9C-map%EC%9C%BC%EB%A1%9C-%EC%A0%81%EC%9A%A9%ED%95%A0-%EC%88%98-%EC%9E%88%EB%8A%94-%EB%B0%A9%EB%B2%95 -->
+	<!-- SQL : SELECT LIST -->
+	<select  id="getPurchaseList"  parameterType="map" resultMap="purchaseSelectMap">
+	  	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  		FROM(	SELECT
+	  			  	tran_no, prod_no, buyer_id,
+	  			  	payment_option, receiver_name, receiver_phone,
+	  			  	dlvy_addr, dlvy_request, trim(tran_status_code) tran_status_code,
+	  			  	order_date, dlvy_date 
+	  			  	FROM transaction WHERE buyer_id = #{buyerId} 
+	  			  	ORDER BY tran_no ) inner_table
+						WHERE ROWNUM &lt;= #{search.endRowNum} )
+		WHERE row_seq BETWEEN #{search.startRowNum} AND #{search.endRowNum} 
+	 </select>
+	 	<!--  위 두번째 subQuery 의  
+	 			WHERE ROWNUM &lt;= #{endRowNum} ) 는
+	 			WHERE ROWNUM <= #{endRowNum} ) 의미이며..
+	 			< 는 keyword 로 &lt; 를	사용.
+	 			
+	 			<![CDATA[  ~~~  ]]> 를 이용하여 아래와 같이 사용  할 수 있다.
+	 			CDATA ==> Character Data 의 의미 Java 에서 \n같은 특수문자 처리  
+
+				WHERE ROWNUM <![CDATA[ <=]]> #{endRowNum} )
+		-->
+	
+	
+	<select  id="getSaleList"  parameterType="search"	resultMap="purchaseSelectMap">
+	  	SELECT tran_no, prodno prod_no, buyer_id, 
+				payment_option, receiver_name, receiver_phone,	
+				dlvy_addr, dlvy_request, trim(nvl(tran_status_code,0)) tran_status_code,
+				order_date, dlvy_date,prodname, price,REG_DATE
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  		FROM (	
+	  			SELECT	tran_no, prodno, buyer_id, 
+				payment_option, receiver_name, receiver_phone,	
+				dlvy_addr, dlvy_request, tran_status_code,
+				order_date, dlvy_date,prodname,price, reg_date
+				FROM transaction ts, 
+	  			(SELECT product.prod_no prodno, 
+	  			product.PROD_NAME prodname, product.PRICE price, reg_date FROM product ) pt
+				<where>
+				prodno = ts.prod_no(+)
+					<if test="searchCondition != null"> 
+						<if test="searchCondition == 0 and searchKeyword !='' ">
+			 				AND prod_no LIKE #{searchKeyword}
+						</if>
+						<if test="searchCondition == 1 and searchKeyword !='' ">
+				 			AND prodname Like '%'|| #{searchKeyword}||'%'
+						</if>
+						<if test="searchCondition == 2 and searchKeyword !='' ">
+				 			AND prodprice LIKE #{searchKeyword}
+						</if>
+					</if>
+				</where>
+				ORDER BY tran_no ) inner_table
+			WHERE ROWNUM &lt;= #{endRowNum} )
+		WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum} 
+	 </select>
+	
+	<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	SELECT	tran_no, prodno, buyer_id, 
+				payment_option, receiver_name, receiver_phone,	
+				dlvy_addr, dlvy_request, tran_status_code,
+				order_date, dlvy_date,prodname,prodprice
+				FROM transaction ts, 
+	  			(SELECT product.prod_no prodno, 
+	  			product.PROD_NAME prodname, product.PRICE prodprice FROM product ) pt
+				<where>
+				 pt.PRODNO = ts.prod_no(+)
+				 <if test="searchCondition != null">
+					<if test="searchCondition == 0 and searchKeyword !='' ">
+						AND prodno Like #{searchKeyword}
+					</if>
+					<if test="searchCondition == 1 and searchKeyword !='' ">
+		 				AND prodname Like '%'|| #{searchKeyword}||'%'
+					</if>
+					<if test="searchCondition == 2 and searchKeyword !='' ">
+		 				AND prodprice LIKE #{searchKeyword}
+					</if>
+				</if> 
+				</where>
+				) countTable			
+	 </select>
+	 
+</mapper>
